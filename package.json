@@ -1,0 +1,22 @@
+{
+  "name": "smartbottle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bluetooth-serial-port": "^3.0.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "noble": "^1.9.1",
+    "noble-uwp": "^0.6.2",
+    "nodemon": "^3.0.2",
+    "socket.io": "^4.7.2"
+  }
+}
