@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Water Level Monitor</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    />
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        overflow: hidden;
+        scroll-behavior: smooth;
+        scroll-margin: none;
+        /* background: url(./background.png); */
+      }
+      #visual {
+        z-index: 9999;
+        width: 100%;
+        float: top;
+      }
+      #gauge svg {
+        width: 100%;
+        height: auto;
+      }
+      .gauge-container {
+        padding: 20px;
+      }
+      .background-arc {
+        fill: #ddd;
+      }
+      .foreground-arc {
+        fill: #69afc0; /* green */
+      }
+      .text-centers {
+        font-size: 60px;
+        padding-left: 120px;
+      }
+      text {
+        fill: #000;
+        text-anchor: middle;
+        font-size: 16px;
+      }
+      footer {
+        /* padding-top: 1rem;
+        padding-bottom: 1rem; */
+        /* background-color: #23879f; */
+        text-align: center;
+        width: 100%;
+      }
+      .navbar-brand img {
+        width: 30px;
+        height: 30px;
+      }
+      .logo {
+        /* margin-top: 40px; */
+        margin-left: -340px;
+        float: left;
+        padding-top: 20px;
+        width: 70px;
+        height: 30px;
+      }
+      .link {
+        padding-right: 100px;
+      }
+      .container {
+        width: 100%;
+      }
+      .align-top {
+        width: 160px;
+        height: 130px;
+      }
+      .wave {
+        position: relative;
+        margin-top: -390px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container gauge-container">
+      <div class="logo">
+        <a class="link" href="#">
+          <img src="./logo.jpg" class="align-top" alt="" />
+        </a>
+      </div>
+      <h1 class="text-centers mt-4 pr-5 mr">EcoHydrate: Hydration Tracker</h1>
+      <div id="waterLevel" class="text-center pr-5 mr-5">
+        Waiting for Bluetooth connection...
+      </div>
+      <br /><br /><br />
+      <div class="gauge" id="gauge"></div>
+    </div>
+    <div class="wave">
+      <svg
+        id="visual"
+        viewBox="0 0 2024 290"
+        width="2024"
+        height="290"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        version="1.1"
+      >
+        <rect x="0" y="0" width="2024" height="290" fill="#ffffff"></rect>
+        <path
+          d="M0 186L21.2 178.7C42.3 171.3 84.7 156.7 126.8 149.8C169 143 211 144 253.2 149.7C295.3 155.3 337.7 165.7 379.8 177C422 188.3 464 200.7 506.2 197.7C548.3 194.7 590.7 176.3 632.8 166.3C675 156.3 717 154.7 759.2 159.5C801.3 164.3 843.7 175.7 885.8 183.5C928 191.3 970 195.7 1012.2 198.3C1054.3 201 1096.7 202 1138.8 196.2C1181 190.3 1223 177.7 1265.2 166C1307.3 154.3 1349.7 143.7 1391.8 140.7C1434 137.7 1476 142.3 1518.2 153.5C1560.3 164.7 1602.7 182.3 1644.8 183.2C1687 184 1729 168 1771.2 162.8C1813.3 157.7 1855.7 163.3 1897.8 170C1940 176.7 1982 184.3 2003 188.2L2024 192L2024 291L2003 291C1982 291 1940 291 1897.8 291C1855.7 291 1813.3 291 1771.2 291C1729 291 1687 291 1644.8 291C1602.7 291 1560.3 291 1518.2 291C1476 291 1434 291 1391.8 291C1349.7 291 1307.3 291 1265.2 291C1223 291 1181 291 1138.8 291C1096.7 291 1054.3 291 1012.2 291C970 291 928 291 885.8 291C843.7 291 801.3 291 759.2 291C717 291 675 291 632.8 291C590.7 291 548.3 291 506.2 291C464 291 422 291 379.8 291C337.7 291 295.3 291 253.2 291C211 291 169 291 126.8 291C84.7 291 42.3 291 21.2 291L0 291Z"
+          fill="#a2d8e3"
+        ></path>
+        <path
+          d="M0 215L21.2 216.3C42.3 217.7 84.7 220.3 126.8 216C169 211.7 211 200.3 253.2 191.5C295.3 182.7 337.7 176.3 379.8 181.5C422 186.7 464 203.3 506.2 205.8C548.3 208.3 590.7 196.7 632.8 187.7C675 178.7 717 172.3 759.2 173C801.3 173.7 843.7 181.3 885.8 184.3C928 187.3 970 185.7 1012.2 188.5C1054.3 191.3 1096.7 198.7 1138.8 196.8C1181 195 1223 184 1265.2 186.3C1307.3 188.7 1349.7 204.3 1391.8 211.2C1434 218 1476 216 1518.2 213.3C1560.3 210.7 1602.7 207.3 1644.8 199.5C1687 191.7 1729 179.3 1771.2 174.8C1813.3 170.3 1855.7 173.7 1897.8 175C1940 176.3 1982 175.7 2003 175.3L2024 175L2024 291L2003 291C1982 291 1940 291 1897.8 291C1855.7 291 1813.3 291 1771.2 291C1729 291 1687 291 1644.8 291C1602.7 291 1560.3 291 1518.2 291C1476 291 1434 291 1391.8 291C1349.7 291 1307.3 291 1265.2 291C1223 291 1181 291 1138.8 291C1096.7 291 1054.3 291 1012.2 291C970 291 928 291 885.8 291C843.7 291 801.3 291 759.2 291C717 291 675 291 632.8 291C590.7 291 548.3 291 506.2 291C464 291 422 291 379.8 291C337.7 291 295.3 291 253.2 291C211 291 169 291 126.8 291C84.7 291 42.3 291 21.2 291L0 291Z"
+          fill="#86c3d1"
+        ></path>
+        <path
+          d="M0 187L21.2 190.8C42.3 194.7 84.7 202.3 126.8 204.7C169 207 211 204 253.2 205.2C295.3 206.3 337.7 211.7 379.8 211.8C422 212 464 207 506.2 205C548.3 203 590.7 204 632.8 208.3C675 212.7 717 220.3 759.2 224.8C801.3 229.3 843.7 230.7 885.8 232.2C928 233.7 970 235.3 1012.2 232C1054.3 228.7 1096.7 220.3 1138.8 218.5C1181 216.7 1223 221.3 1265.2 225C1307.3 228.7 1349.7 231.3 1391.8 225C1434 218.7 1476 203.3 1518.2 196.7C1560.3 190 1602.7 192 1644.8 197.3C1687 202.7 1729 211.3 1771.2 216.3C1813.3 221.3 1855.7 222.7 1897.8 224.2C1940 225.7 1982 227.3 2003 228.2L2024 229L2024 291L2003 291C1982 291 1940 291 1897.8 291C1855.7 291 1813.3 291 1771.2 291C1729 291 1687 291 1644.8 291C1602.7 291 1560.3 291 1518.2 291C1476 291 1434 291 1391.8 291C1349.7 291 1307.3 291 1265.2 291C1223 291 1181 291 1138.8 291C1096.7 291 1054.3 291 1012.2 291C970 291 928 291 885.8 291C843.7 291 801.3 291 759.2 291C717 291 675 291 632.8 291C590.7 291 548.3 291 506.2 291C464 291 422 291 379.8 291C337.7 291 295.3 291 253.2 291C211 291 169 291 126.8 291C84.7 291 42.3 291 21.2 291L0 291Z"
+          fill="#69afc0"
+        ></path>
+        <path
+          d="M0 243L21.2 244C42.3 245 84.7 247 126.8 250.3C169 253.7 211 258.3 253.2 258.2C295.3 258 337.7 253 379.8 246.3C422 239.7 464 231.3 506.2 232.2C548.3 233 590.7 243 632.8 249.3C675 255.7 717 258.3 759.2 257.8C801.3 257.3 843.7 253.7 885.8 246.7C928 239.7 970 229.3 1012.2 224.7C1054.3 220 1096.7 221 1138.8 225C1181 229 1223 236 1265.2 242C1307.3 248 1349.7 253 1391.8 249.7C1434 246.3 1476 234.7 1518.2 232.5C1560.3 230.3 1602.7 237.7 1644.8 244.3C1687 251 1729 257 1771.2 255.8C1813.3 254.7 1855.7 246.3 1897.8 243.5C1940 240.7 1982 243.3 2003 244.7L2024 246L2024 291L2003 291C1982 291 1940 291 1897.8 291C1855.7 291 1813.3 291 1771.2 291C1729 291 1687 291 1644.8 291C1602.7 291 1560.3 291 1518.2 291C1476 291 1434 291 1391.8 291C1349.7 291 1307.3 291 1265.2 291C1223 291 1181 291 1138.8 291C1096.7 291 1054.3 291 1012.2 291C970 291 928 291 885.8 291C843.7 291 801.3 291 759.2 291C717 291 675 291 632.8 291C590.7 291 548.3 291 506.2 291C464 291 422 291 379.8 291C337.7 291 295.3 291 253.2 291C211 291 169 291 126.8 291C84.7 291 42.3 291 21.2 291L0 291Z"
+          fill="#4a9baf"
+        ></path>
+        <path
+          d="M0 253L21.2 254.3C42.3 255.7 84.7 258.3 126.8 260.8C169 263.3 211 265.7 253.2 263.7C295.3 261.7 337.7 255.3 379.8 252C422 248.7 464 248.3 506.2 247.3C548.3 246.3 590.7 244.7 632.8 245.3C675 246 717 249 759.2 249.5C801.3 250 843.7 248 885.8 249C928 250 970 254 1012.2 254.3C1054.3 254.7 1096.7 251.3 1138.8 250.8C1181 250.3 1223 252.7 1265.2 256.7C1307.3 260.7 1349.7 266.3 1391.8 265.5C1434 264.7 1476 257.3 1518.2 253C1560.3 248.7 1602.7 247.3 1644.8 247.5C1687 247.7 1729 249.3 1771.2 248.7C1813.3 248 1855.7 245 1897.8 245.8C1940 246.7 1982 251.3 2003 253.7L2024 256L2024 291L2003 291C1982 291 1940 291 1897.8 291C1855.7 291 1813.3 291 1771.2 291C1729 291 1687 291 1644.8 291C1602.7 291 1560.3 291 1518.2 291C1476 291 1434 291 1391.8 291C1349.7 291 1307.3 291 1265.2 291C1223 291 1181 291 1138.8 291C1096.7 291 1054.3 291 1012.2 291C970 291 928 291 885.8 291C843.7 291 801.3 291 759.2 291C717 291 675 291 632.8 291C590.7 291 548.3 291 506.2 291C464 291 422 291 379.8 291C337.7 291 295.3 291 253.2 291C211 291 169 291 126.8 291C84.7 291 42.3 291 21.2 291L0 291Z"
+          fill="#23879f"
+        ></path>
+      </svg>
+    </div>
+    <footer class="footer">
+      <div class="container text-center">
+        <span class="text-muted"
+          >&copy;
+          <script>
+            document.write(new Date().getFullYear());
+          </script>
+          - Project by Team Eco Hydrate</span
+        >
+      </div>
+    </footer>
+
+    <script>
+      var socket = io();
+
+      var width = 1000, // Adjust the width as needed
+        height = 700, // Adjust the height as needed
+        radius = Math.min(width, height) / 2;
+
+      var arc = d3
+        .arc()
+        .innerRadius(radius - 100)
+        .outerRadius(radius - 50)
+        .startAngle(-Math.PI / 2); // Start angle of -90 degrees
+
+      var svg = d3
+        .select("#gauge")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+      var background = svg
+        .append("path")
+        .datum({ endAngle: Math.PI / 2 }) // End angle of 90 degrees
+        .attr("class", "background-arc")
+        .attr("d", arc);
+
+      var foreground = svg
+        .append("path")
+        .datum({ endAngle: -Math.PI / 2 }) // Start at -90 degrees
+        .attr("class", "foreground-arc")
+        .attr("d", arc);
+
+      var text = svg
+        .append("text")
+        .attr("class", "gauge-text")
+        .attr("dy", "0.35em"); // Center vertically
+
+      function updateWaterLevel(newLevel) {
+        console.log(newLevel);
+        var newAngle = (newLevel / 2) * Math.PI - Math.PI / 2; // Scale to [-90, 90] degrees range
+        foreground
+          .transition()
+          .duration(750)
+          .attrTween("d", arcTween(newAngle));
+        text.text(newLevel.toFixed(2) + " Liters");
+      }
+
+      function arcTween(newAngle) {
+        return function (d) {
+          var interpolate = d3.interpolate(d.endAngle, newAngle);
+          return function (t) {
+            d.endAngle = interpolate(t);
+            return arc(d);
+          };
+        };
+      }
+
+      socket.on("waterLevel", function (data) {
+        var level = parseFloat(data); // Convert to float in case it's a string
+        if (level < 0) {
+          levels = 0;
+        } else {
+          levels = level;
+        }
+        document.getElementById("waterLevel").innerText =
+          "Water Level: " + levels.toFixed(2) + " L";
+        updateWaterLevel(levels);
+      });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  </body>
+</html>
