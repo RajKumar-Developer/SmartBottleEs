@@ -32,7 +32,7 @@ btSerial.on("found", function (address, name) {
             const data = buffer.toString("utf-8").trim();
             // console.log(data);
             const waterLevel = parseFloat(data);
-            //  console.log("Received water level:", waterLevel);
+            console.log("Received water level:", waterLevel);
 
             // Emit the data to connected clients
             io.emit("waterLevel", waterLevel);
