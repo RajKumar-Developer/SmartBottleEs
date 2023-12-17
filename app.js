@@ -3,8 +3,6 @@ var btSerial = new (require("bluetooth-serial-port").BluetoothSerialPort)();
 const http = require("http");
 const socketIO = require("socket.io");
 const path = require("path");
-// const noble = require("noble");
-// const noble = require("noble-uwp");
 
 const cors = require("cors");
 
@@ -20,7 +18,6 @@ app.use(express.static(path.join(__dirname, "public")));
 // Connect to the Bluetooth module
 btSerial.on("found", function (address, name) {
   if (name === "HC-05") {
-    // Replace with your Bluetooth module name
     btSerial.findSerialPortChannel(address, function (channel) {
       btSerial.connect(
         address,
@@ -33,8 +30,6 @@ btSerial.on("found", function (address, name) {
             // console.log(data);
             const waterLevel = parseFloat(data);
             console.log("Received water level:", waterLevel);
-
-            // Emit the data to connected clients
             io.emit("waterLevel", waterLevel);
           });
         },
